@@ -1,27 +1,12 @@
 import torch
 from torch.utils.data import Dataset
 from datasets import load_dataset
-import black
 
-def format_code(code):
-    try:
-        code = black.format_str(code, mode=black.Mode())
-    except Exception as e:
-        print(f"Warning: Failed to process code due to {e}. Returning original.")
-
-    return code
-
-class CodeDocstringDataset(Dataset):
+class QADataset(Dataset):
     def __init__(
-        self, dataset_name, tokenizer, max_length, split="train", fraction=1.0, ignore_code=False,
+        self, config, tokenizer, 
     ):
-        """
-        Args:
-            dataset_name: Name of the dataset to load from HugginfFace Datasets.
-            tokenizer: A Tokenizer instance.
-            max_length: Maximum sequence length (for both code and docstring combined including special tokens).
-        """
-        self.hf_dataset = load_dataset(dataset_name)[split]
+        self.dataset = load_dataset(dataset_name)[split]
         n_subset = int(fraction * len(self.hf_dataset))
         self.hf_dataset = self.hf_dataset.select(range(n_subset))
         print(

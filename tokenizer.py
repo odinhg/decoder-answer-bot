@@ -30,7 +30,7 @@ def train_tokenizer(config):
 
     tokenizer = Tokenizer(models.BPE(unk_token=config.tokenizer.unk_token))
     tokenizer.normalizer = normalizers.BertNormalizer(clean_text=True, strip_accents=True)
-    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=True)
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
     tokenizer.decoder = decoders.ByteLevel()
 
     trainer = trainers.BpeTrainer(
@@ -70,4 +70,5 @@ if __name__ == "__main__":
     print(f"Encoded: {encoded.ids}")
     decoded = tokenizer.decode(encoded.ids, skip_special_tokens=False)
     print(f"Decoded: {decoded}")
+
 

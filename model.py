@@ -15,6 +15,10 @@ class DecoderBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, attn_mask, padding_mask):
+
+        if padding_mask is None:
+            padding_mask = torch.zeros(x.shape[:2]).bool().to(x.device)
+
         attn_output, _ = self.attention(
             x, x, x, 
             attn_mask=attn_mask, 
@@ -29,19 +33,25 @@ class DecoderBlock(nn.Module):
 
 
 class TransformerModel(nn.Module):
-    def __init__(self, vocab_size, embed_size, num_heads, num_layers, dropout, max_len):
+    def __init__(self, config):
         super().__init__()
-        self.embed_size = embed_size
-        self.num_layers = num_layers
+        self.embed_size = config.model.embed_size
+        self.num_layers = config.model.num_layers 
+        self.vocab_size = config.tokenizer.vocab_size
+        self.max_len = config.training.max_len
+        self.dropout = config.model.dropout
+        self.num_heads = config.model.num_heads
+        self.device = config.general.device
 
-        self.embedding = nn.Embedding(vocab_size, embed_size)
-        self.positional_encoding = self.create_positional_encoding(max_len, embed_size)
-        self.dropout = nn.Dropout(dropout)
+        self.embedding = nn.Embedding(self.vocab_size, self.embed_size)
+        self.positional_encoding = self.create_positional_encoding(self.max_len, self.embed_size)
+        self.dropout = nn.Dropout(self.dropout)
 
-        self.layers = nn.ModuleList([DecoderBlock(embed_size, num_heads, dropout) for _ in range(num_layers)])
-        self.fc_out = nn.Linear(embed_size, vocab_size)
+        self.layers = nn.ModuleList([DecoderBlock(self.embed_size, self.num_heads, self.dropout) for _ in range(self.num_layers)])
+        self.fc_out = nn.Linear(self.embed_size, self.vocab_size)
 
-        self.register_buffer("causal_mask", self.generate_causal_mask(max_len))
+        self.register_buffer("causal_mask", self.generate_causal_mask(self.max_len))
+        self.register_buffer("positional_encoding", self.positional_encoding)
 
     def forward(self, x, padding_mask=None):
         batch_size, seq_len = x.shape
@@ -50,11 +60,8 @@ class TransformerModel(nn.Module):
         attn_mask = self.causal_mask[:seq_len, :seq_len]
 
         # Inject positional encoding
-        x = self.embedding(x) + self.positional_encoding[:seq_len, :].to(x.device)
+        x = self.embedding(x) + self.positional_encoding[:seq_len, :]
         x = self.dropout(x)
-
-        if padding_mask is None: # Assume no padding tokens
-            padding_mask = torch.zeros(batch_size, seq_len).bool().to(x.device)
 
         for layer in self.layers:
             x = layer(x, attn_mask, padding_mask)
