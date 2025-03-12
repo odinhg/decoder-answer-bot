@@ -1,45 +1,33 @@
-# TODO
+# My Little 
 
-- [ ] Fix optimizer state dict device when loading existing
-- [ ] Make config cleaner (maybe use simple namespace)
-- [ ] Save model and optimizer state dict multiple times per epoch in case Google Colab times out. This way we can resume training from the last checkpoint when we have available resources again.
-- [x] Config for one small and one larger model
-- [x] Create source and target sequences in dataset class (shifted)
-- [x] Move to PyTorch masked attention layer instead of custom (for performance)
-- [x] Change attention mask generation so it is comatible with PyTorch's attention layer
-- [x] Instead of returning loss mask, just return target sequence with padding tokens set to -100 (default `ignore_index` in CrossEntropyLoss)
-- [ ] Add special tokens for indentation (4 spaces) and newlines in code.
-- [x] Include code tokens in loss and see if it improves performance
-- [ ] Implement beam search or other non-trivial decoding strategy
+This is a simple implementation of a decoder-only transformer model for generating answers to short questions. It uses masked (causal) self-attention layers to prevent the model from looking ahead in the sequence. It supports inference using either greedy decoding or top-p (nucleus) sampling.
 
-# Py2Doc – Generating Documentation Strings from Python Code
+The sequence format is as follows:
 
-This is a basic implementation of an auto-regressive decoder-only transformer model for generating documentation strings (docstrings) from Python code. It uses a masked self-attention layer (causal attention), implemented from scratch in PyTorch.
+```
+[QUESTION] q1 q2 ... qN [ANSWER] a1 a2 ... aM [END]
+```
 
-The input format to the model is on the form `[START] c1 c2 ... cN [DOC] d1 d2 ... dM [END] [PAD] ... [PAD]` where `c1 c2 ... cN` is the tokenized code and `d1 d2 ... dM` is the tokenized docstring (truncated and/or padded to a fixed maximum length if necessary). 
+where `[QUESTION]` and `[ANSWER]` are special tokens indicating the start of the question and answer sequences, respectively, and `[END]` is a special token indicating the end of the sequence.
 
-## Quick Start
+The dataset is a subset of the [GooAQ dataset](https://github.com/allenai/gooaq). Here are a few examples:
 
-0. Set parameters to use in `config.py`.
-1. Run `train_tokenizer.py` to train the tokenizer.
-2. Run `train_transformer.py` to train the transformer model.
-3. Run `generate_docstrings.py` to generate docstrings for some example code snippets.
-4. Run `webapp.py` to start a simple web interface for generating docstrings.
+```
+Q: is it possible to get a false negative flu test?
+A: This variation in ability to detect viruses can result in some people who are infected with the flu having a negative rapid test result. (This situation is called a false negative test result.)
+```
 
-### Tokenizer
+```
+Q: are you not supposed to rinse after brushing teeth?
+A: Don't rinse with water straight after toothbrushing Don't rinse your mouth immediately after brushing, as it'll wash away the concentrated fluoride in the remaining toothpaste. This dilutes it and reduces its preventative effects.
+```
 
-The tokenizer is trained using Byte Pair Encoding (BPE). The training script is in `train_tokenizer.py`. The tokenizer is saved as a JSON file.
+```
+Q: what is the difference between a bald eagle and a hawk?
+A: Hawks have curved beak and very sharp talons. Legs of both eagles and hawks are at least partially covered with feathers. Eagles have a wingspan of 8 feet, while most hawks have a wingspan of less than 5 feet. Hawks can soar for long period of time thanks to their long, broad wings and wide tail.
+```
 
-**Special tokens:**
-
-- `[START]` is used as the start token.
-- `[DOC]` is used between the code and the docstring.
-- `[END]` is used as the end token.
-- `[PAD]` is used as padding.
-
-### Dataset
-
-The dataset class `CodeDocstringDataset` is responsible for providing training examples to the model. It loads a given dataset from Hugging Face's datasets library and tokenizes the code and docstrings using the trained tokenizer. It also takes care of the truncation and padding of sequences, as well as the creation of the attention and loss mask tensors (probably not optimal memory-wise but makes the data loading self-contained).
+We always keep the full question but allow truncation of the answer to keep the sequence length manageable for training on low-cost hardware.
 
 ### Masked Self-Attention (Causal Attention)
 
