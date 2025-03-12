@@ -1,11 +1,11 @@
 from datasets import load_dataset
-from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers
+from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers, normalizers
 from pathlib import Path
 from tqdm import tqdm
 from tqdm.contrib.concurrent import process_map
 
 def example_to_text(example):
-    return f"[QST] {example['question']} [ANS] {example['answer']} [END]"
+    return f"[QST]{example['question']}[ANS]{example['answer']}[END]"
 
 def train_tokenizer(config):
     # Load the training data and select a subset to train the tokenizer on
@@ -29,7 +29,8 @@ def train_tokenizer(config):
         )
 
     tokenizer = Tokenizer(models.BPE(unk_token=config.tokenizer.unk_token))
-    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel()
+    tokenizer.normalizer = normalizers.BertNormalizer(clean_text=True, strip_accents=True)
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=True)
     tokenizer.decoder = decoders.ByteLevel()
 
     trainer = trainers.BpeTrainer(
@@ -48,7 +49,25 @@ def train_tokenizer(config):
     tokenizer.save(str(tokenizer_path))
     print(f"Saved tokenizer to {tokenizer_path}")
 
+    return tokenizer
+
 if __name__ == "__main__":
     from config import config
-    train_tokenizer(config)
+
+    if not Path(config.tokenizer.tokenizer_filename).exists():
+        tokenizer = train_tokenizer(config)
+    else:
+        print(f"Using existing tokenizer at {config.tokenizer.tokenizer_filename}")
+        tokenizer = Tokenizer.from_file(config.tokenizer.tokenizer_filename)
+
+    # Simple test
+    input_question = "Who is the president of the United States?"
+    input_answer = "That would be Donald Musk, I believe."
+    example = {"question": input_question, "answer": input_answer}
+    text = example_to_text(example)
+    print(f"Tokenizer Input: {text}")
+    encoded = tokenizer.encode(text)
+    print(f"Encoded: {encoded.ids}")
+    decoded = tokenizer.decode(encoded.ids, skip_special_tokens=False)
+    print(f"Decoded: {decoded}")
 

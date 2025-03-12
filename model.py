@@ -28,7 +28,7 @@ class DecoderBlock(nn.Module):
         return self.dropout(out)
 
 
-class TransformerDecoderOnly(nn.Module):
+class TransformerModel(nn.Module):
     def __init__(self, vocab_size, embed_size, num_heads, num_layers, dropout, max_len):
         super().__init__()
         self.embed_size = embed_size
@@ -41,7 +41,6 @@ class TransformerDecoderOnly(nn.Module):
         self.layers = nn.ModuleList([DecoderBlock(embed_size, num_heads, dropout) for _ in range(num_layers)])
         self.fc_out = nn.Linear(embed_size, vocab_size)
 
-        # Store reusable causal mask
         self.register_buffer("causal_mask", self.generate_causal_mask(max_len))
 
     def forward(self, x, padding_mask=None):
@@ -75,46 +74,3 @@ class TransformerDecoderOnly(nn.Module):
         """Generates an upper triangular mask to prevent attending to future tokens."""
         return torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
 
-
-if __name__ == "__main__":
-    from tokenizers import Tokenizer
-    from datasets import load_dataset
-    from utils import CodeDocstringDataset
-    import config
-
-    from torch.utils.data import DataLoader
-
-    tokenizer = Tokenizer.from_file(config.tokenizer["tokenizer_file"])
-    code_doc_dataset = CodeDocstringDataset(
-        config.general["dataset"], tokenizer, config.model["max_len"]
-    )
-
-    model = TransformerDecoderOnly(
-        vocab_size=config.tokenizer["vocab_size"],
-        embed_size=config.model["embed_size"],
-        num_heads=config.model["num_heads"],
-        num_layers=config.model["num_layers"],
-        dropout=config.model["dropout"],
-        max_len=config.model["max_len"],
-    )
-
-    # print number of parameters in the model
-    print(
-        f"Number of parameters in the model: {sum(p.numel() for p in model.parameters())}"
-    )
-
-    dataloader = DataLoader(
-        code_doc_dataset, batch_size=config.model["batch_size"], shuffle=False
-    )
-
-    batch = next(iter(dataloader))
-    source_sequence, target_sequence, key_padding_mask = batch.values() 
-    print("Source sequence shape:", source_sequence.shape)
-    print("Target sequence shape:", target_sequence.shape)
-    print("Key padding mask shape:", key_padding_mask.shape)
-
-    out = model(source_sequence, padding_mask=key_padding_mask)
-    criterion = nn.CrossEntropyLoss()
-    loss = criterion(out.transpose(2, 1), target_sequence)
-    print("Loss:", loss)
-    loss.backward()
