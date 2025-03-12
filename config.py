@@ -4,7 +4,8 @@ from types import SimpleNamespace
 # Global parameters
 general = {
     "seed": 0,
-    "dataset": "odinhg/vault-py-filtered-short",
+    "dataset": "odinhg/gooaq-subset",
+    "split": "train",
     "device": "cpu" if not torch.cuda.is_available() else "cuda",
 }
 
@@ -14,9 +15,9 @@ tokenizer = {
     "vocab_size": 10000,
     "min_frequency": 5,
     "unk_token": "[UNK]",
-    "special_tokens": ["[QUESTION]", "[ANSWER]", "[EOS]", "[PAD]", "[UNK]"],
+    "special_tokens": ["[QST]", "[ANS]", "[END]", "[PAD]", "[UNK]"],
     "num_workers": 4,
-    "filename": "temp/tokenizer.json",
+    "tokenizer_filename": "temp/tokenizer.json",
 }
 
 # Model configuration
@@ -58,4 +59,4 @@ print("Using configuration:")
 for key, namespace in config.__dict__.items():
     print(f"{key}:")
     for subkey, value in namespace.__dict__.items():
-        print(f"{subkey}: {value}")
+        print(f"\t{subkey}: {value}")
