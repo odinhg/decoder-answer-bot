@@ -1,62 +1,33 @@
 import torch
 from types import SimpleNamespace
 
-# Global parameters
-general = {
+config = {
     "seed": 0,
     "dataset": "odinhg/gooaq-subset",
     "split": "train",
     "device": "cpu" if not torch.cuda.is_available() else "cuda",
-}
-
-# Tokenizer configuration
-tokenizer = {
-    "train_fraction": 1.0,
-    "vocab_size": 10000,
+    "tokenizer_train_fraction": 1.0,
+    "vocab_size": 15000,
     "min_frequency": 5,
     "unk_token": "[UNK]",
     "special_tokens": ["[QST]", "[ANS]", "[END]", "[PAD]", "[UNK]"],
-    "num_workers": 4,
     "tokenizer_filename": "temp/tokenizer.json",
-}
-
-# Model configuration
-model = {
-    "embed_size": 128,
+    "embed_size": 64,
     "num_heads": 4,
     "num_layers": 4,
-    "dropout": 0.1,
-}
-
-# Training configuration
-training = {
+    "dropout_p": 0.1,
     "max_len": 128,
-    "train_fraction": 1.0,
-    "batch_size": 32,
-    "num_workers": 4,
+    "model_train_fraction": 0.1,
+    "batch_size": 64,
+    "dataloader_num_workers": 2,
     "lr": 1e-4,
-    "num_epochs": 10,
+    "num_epochs": 5,
     "model_filename": "temp/model.pth",
     "optimizer_filename": "temp/optimizer.pth",
+    "inference_mode": "greedy",  # "greedy" or "top-p"
+    "inference_p": 0.95,
+    "inference_temperature": 0.7,
 }
 
-# Inference configuration
-inference = {
-    "mode": "greedy",  # "greedy" or "top-p"
-    "p": 0.95,
-    "temperature": 0.7,
-}
+config = SimpleNamespace(**config)
 
-config = SimpleNamespace(
-    general=SimpleNamespace(**general),
-    tokenizer=SimpleNamespace(**tokenizer),
-    model=SimpleNamespace(**model),
-    training=SimpleNamespace(**training),
-    inference=SimpleNamespace(**inference),
-)
-
-print("Using configuration:")
-for key, namespace in config.__dict__.items():
-    print(f"{key}:")
-    for subkey, value in namespace.__dict__.items():
-        print(f"\t{subkey}: {value}")

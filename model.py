@@ -35,23 +35,22 @@ class DecoderBlock(nn.Module):
 class TransformerModel(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.embed_size = config.model.embed_size
-        self.num_layers = config.model.num_layers 
-        self.vocab_size = config.tokenizer.vocab_size
-        self.max_len = config.training.max_len
-        self.dropout = config.model.dropout
-        self.num_heads = config.model.num_heads
-        self.device = config.general.device
+        self.embed_size = config.embed_size
+        self.num_layers = config.num_layers 
+        self.vocab_size = config.vocab_size
+        self.max_len = config.max_len
+        self.dropout_p = config.dropout_p
+        self.num_heads = config.num_heads
+        self.device = config.device
 
         self.embedding = nn.Embedding(self.vocab_size, self.embed_size)
-        self.positional_encoding = self.create_positional_encoding(self.max_len, self.embed_size)
-        self.dropout = nn.Dropout(self.dropout)
+        self.dropout = nn.Dropout(self.dropout_p)
 
-        self.layers = nn.ModuleList([DecoderBlock(self.embed_size, self.num_heads, self.dropout) for _ in range(self.num_layers)])
+        self.layers = nn.ModuleList([DecoderBlock(self.embed_size, self.num_heads, self.dropout_p) for _ in range(self.num_layers)])
         self.fc_out = nn.Linear(self.embed_size, self.vocab_size)
 
         self.register_buffer("causal_mask", self.generate_causal_mask(self.max_len))
-        self.register_buffer("positional_encoding", self.positional_encoding)
+        self.register_buffer("positional_encoding", self.create_positional_encoding(self.max_len, self.embed_size)) 
 
     def forward(self, x, padding_mask=None):
         batch_size, seq_len = x.shape
@@ -80,4 +79,33 @@ class TransformerModel(nn.Module):
     def generate_causal_mask(self, seq_len):
         """Generates an upper triangular mask to prevent attending to future tokens."""
         return torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
+
+
+if __name__ == "__main__":
+    from tokenizers import Tokenizer
+    from torch.nn.functional import cross_entropy
+
+    from config import config
+    from utils import get_num_params
+    from dataset import QADataset
+
+    model = TransformerModel(config)
+    print(f"Number of parameters in the model: {get_num_params(model):,}")
+
+    # Simple forward pass for sanity checking
+    tokenizer = Tokenizer.from_file(config.tokenizer_filename)
+    dataset = QADataset(config, tokenizer)
+    source = dataset[0]["source_sequence"].unsqueeze(0)
+    target = dataset[0]["target_sequence"].unsqueeze(0)
+    padding_mask = dataset[0]["key_padding_mask"].unsqueeze(0)
+
+    # Forward pass
+    out = model(source, padding_mask)
+    print("Output shape:", out.shape)
+    print("Target shape:", target.shape)
+    print("Loss mask shape:", padding_mask.shape)
+
+    # Calculate loss
+    loss = cross_entropy(out.transpose(1, 2), target)
+    print("Loss:", loss.item())
 
