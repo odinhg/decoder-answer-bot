@@ -24,8 +24,11 @@ def train_model(config):
         optimizer = optim.AdamW(model.parameters(), lr=config.lr)
         optimizer.load_state_dict(torch.load(config.optimizer_filename, weights_only=True))
     else:
-        optimizer = optim.AdamW(model.parameters(), lr=config.lr)
         model = model.to(config.device)
+        optimizer = optim.AdamW(model.parameters(), lr=config.lr)
+
+    print("Compiling model...")
+    model = torch.compile(model)
 
     tokenizer = Tokenizer.from_file(config.tokenizer_filename)
     dataset = QADataset(config, tokenizer)
@@ -33,22 +36,33 @@ def train_model(config):
 
     criterion = nn.CrossEntropyLoss(ignore_index=-100)
 
+    scaler = torch.amp.GradScaler(config.device) if config.device == "cuda" else None
+
     for epoch in range(config.num_epochs):
         model.train()
         total_loss = 0
 
         for batch_idx, batch in (pbar := tqdm(enumerate(train_loader), total=len(train_loader))):
+            optimizer.zero_grad()
+
             source, target, key_padding_mask = batch.values()
             source = source.to(config.device)
             target = target.to(config.device)
             key_padding_mask = key_padding_mask.to(config.device)
 
-            out = model(source, padding_mask=key_padding_mask)
-            loss = criterion(out.transpose(1, 2), target)
+            if config.device == "cuda": # Mixed precision training on GPU
+                with torch.autocast("cuda"):
+                    out = model(source, padding_mask=key_padding_mask)
+                    loss = criterion(out.transpose(1, 2), target)
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                out = model(source, padding_mask=key_padding_mask)
+                loss = criterion(out.transpose(1, 2), target)
+                loss.backward()
+                optimizer.step()
 
             total_loss += loss.item()
 
