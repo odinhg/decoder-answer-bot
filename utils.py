@@ -6,7 +6,7 @@ def get_num_params(model):
 def print_config(config):
     print("Using configuration:")
     for key, value in vars(config).items():
-        print(f"\tconfig.{key}: {value}")
+        print(f"\t{key}: {value}")
     print("*" * 100)
 
 def sample_greedy():

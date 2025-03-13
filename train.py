@@ -52,7 +52,7 @@ def train_model(config):
 
             total_loss += loss.item()
 
-            pbar.set_description(f"[{epoch + 1:03} | {config.num_epochs}] Loss: {loss.item():.4f}")
+            pbar.set_description(f"[{epoch + 1:03} | {config.num_epochs:03}] Loss: {loss.item():.4f}")
 
             if (batch_idx + 1) % 500 == 0: # Save checkpoint every 500 batches
                 torch.save(model.state_dict(), config.model_filename)
