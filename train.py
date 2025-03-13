@@ -59,7 +59,7 @@ def train_model(config):
                 torch.save(optimizer.state_dict(), config.optimizer_filename)
 
         mean_epoch_loss = total_loss / len(train_loader)
-        print(f"Mean Epoch Cross-Entropy Loss: {mean_epoch_loss}")
+        print(f"\nMean Epoch Cross-Entropy Loss: {mean_epoch_loss}")
 
     torch.save(model.state_dict(), config.model_filename)
     torch.save(optimizer.state_dict(), config.optimizer_filename)
