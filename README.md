@@ -1,6 +1,6 @@
-# My Little 
+# My First Transformer Model
 
-This is a simple implementation of a decoder-only transformer model for generating answers to short questions. It uses masked (causal) self-attention layers to prevent the model from looking ahead in the sequence. It supports inference using either greedy decoding or top-p (nucleus) sampling.
+This is a minimal from-scratch implementation of a decoder-only transformer model for generating answers to short questions. It uses masked (causal) self-attention layers to prevent the model from looking ahead in the sequence. It supports inference using either greedy decoding or top-p (nucleus) sampling.
 
 The sequence format is as follows:
 
@@ -41,7 +41,7 @@ To train the model using the training script `train_transformer.py`. The model i
 
 ### Inference
 
-Todo
+Currently, two sampling strategies are implemented: Greedy and Top-p (nucleus) sampling. The inference script `generate_answers.py -q <question>` generates an answer to the given question using the trained model. Furthermore, running `web_app.py` will start a web application where you can input questions and get answers interactively.
 
 ### Questions
 
@@ -62,6 +62,8 @@ Todo
 **8. What is the role of applying masking to the cross-entropy loss function?**
 
 **9. How many parameters does your model have? Compare it to the GPT-1, GPT-2, and GPT-3 models.**
+
+**10. Would an encoder-decoder transformer model be more suitable for this task? What are the benefits and drawbacks?**
 
 ## Learning Resources
 
