@@ -1,7 +1,11 @@
 import torch
 from types import SimpleNamespace
 
-config = {
+"""
+This file contains the project configuration. To access the config from other scripts, simply import it by `from config import config` and then access the config values using `config.<attribute>`. For example, to access the batch size, use `config.batch_size`.
+"""
+
+config = SimpleNamespace(**{
     "seed": 0,
     "dataset": "odinhg/gooaq-subset",
     "split": "train",
@@ -24,16 +28,15 @@ config = {
     "batch_size": 128,
     "dataloader_num_workers": 2,
     "lr": 1e-4,
-    "num_epochs": 3,
+    "num_epochs": 5,
     "model_filename": "temp/model.pth",
     "optimizer_filename": "temp/optimizer.pth",
 
     "sampling_strategy": "top-p", # "greedy" or "top-p"
     "top_p": 0.95,
     "temperature": 0.7,
-}
+    })
 
-config = SimpleNamespace(**config)
 
 # Uncomment the below code to use a tiny model for testing your code before GPU training
 """

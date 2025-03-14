@@ -1,6 +1,6 @@
-# My First Transformer Model
+# My Little Language Model (MLLM)
 
-This is a minimal from-scratch implementation of a decoder-only transformer model for generating answers to short questions. It uses masked (causal) self-attention layers to prevent the model from looking ahead in the sequence. It supports inference using either greedy decoding or top-p (nucleus) sampling.
+This is a from-scratch implementation of a decoder-only transformer model for generating answers to short questions. It uses masked (causal) self-attention layers to prevent the model from looking ahead in the sequence. It supports inference using either greedy decoding or top-p (nucleus) sampling.
 
 The sequence format is as follows:
 
@@ -67,6 +67,7 @@ Currently, two sampling strategies are implemented: Greedy and Top-p (nucleus) s
 
 ## Learning Resources
 
+Some websites and videos that are helpful for understanding transformers and self-attention:
 
 - [Decoder-Only Transformers: The Workhorse of Generative LLMs (Blog post)](https://cameronrwolfe.substack.com/p/decoder-only-transformers-the-workhorse)
 - [How does the (decoder-only) transformer architecture work? (AI StackExchange)](https://ai.stackexchange.com/a/40180)
