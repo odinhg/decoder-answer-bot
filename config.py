@@ -31,10 +31,6 @@ config = SimpleNamespace(**{
     "num_epochs": 5,
     "model_filename": "temp/model.pth",
     "optimizer_filename": "temp/optimizer.pth",
-
-    "sampling_strategy": "top-p", # "greedy" or "top-p"
-    "top_p": 0.95,
-    "temperature": 0.7,
     })
 
 
