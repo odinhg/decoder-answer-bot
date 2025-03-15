@@ -58,9 +58,10 @@ Here are some ideas for extending the project:
 Some websites and videos that are helpful for understanding transformers and self-attention:
 
 - [Decoder-Only Transformers: The Workhorse of Generative LLMs (Blog post)](https://cameronrwolfe.substack.com/p/decoder-only-transformers-the-workhorse)
+- [How Attention Mechanism Works in Transformer Architecture (YouTube)](https://www.youtube.com/watch?v=KMHkbXzHn7s) (Especially the parts on causal self-attention and GPT-2)
 - [How does the (decoder-only) transformer architecture work? (AI StackExchange)](https://ai.stackexchange.com/a/40180)
-- [Attention in transformers, step-by-step (3Blue1Brown, YouTube)](https://www.youtube.com/watch?v=eMlx5fFNoYc)
-- [Attention is all you need (Original transformers paper)](https://arxiv.org/pdf/1706.03762)
+- [Attention in transformers, step-by-step (YouTube)](https://www.youtube.com/watch?v=eMlx5fFNoYc)
+- [Attention is all you need (The original transformers paper)](https://arxiv.org/pdf/1706.03762)
 - [Stack Overflow answer explaining the role of masking in attention layers](https://stackoverflow.com/a/59713254)
 
 ### Questions
