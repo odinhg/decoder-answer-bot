@@ -6,23 +6,29 @@ This file contains the project configuration. To access the config from other sc
 """
 
 config = SimpleNamespace(**{
+    # General config
     "seed": 0,
     "dataset": "odinhg/gooaq-subset",
     "split": "train",
     "device": "cpu" if not torch.cuda.is_available() else "cuda",
     
+    # Tokenizer config
     "tokenizer_train_fraction": 1.0,
     "vocab_size": 20_000,
     "min_frequency": 5,
     "unk_token": "[UNK]",
-    "special_tokens": ["[QST]", "[ANS]", "[END]", "[PAD]", "[UNK]"],
+    "sep_token": "[SEP]",
+    "end_token": "[END]",
+    "pad_token": "[PAD]",
     "tokenizer_filename": "temp/tokenizer.json",
     
+    # Model config
     "embed_size": 512,
     "num_heads": 8,
     "num_layers": 5,
     "dropout_p": 0.1,
 
+    # Training config
     "max_len": 128,
     "model_train_fraction": 1.0,
     "batch_size": 128,

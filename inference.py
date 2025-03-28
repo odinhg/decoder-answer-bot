@@ -26,19 +26,13 @@ def greedy_sampling(last_token_logits):
     """
     return torch.argmax(last_token_logits)
 
-def sample_sequence(model, tokenizer, question_text, strategy, max_len, device, p=0.95, temperature=0.7):
+def sample_sequence(input_sequence, model, strategy, max_len, device, end_id, p=0.95, temperature=0.7):
     model.eval()
     with torch.no_grad():
-        source = tokenizer.encode(question_text).ids
-        source = torch.tensor(source).unsqueeze(0).to(device)
-
-        question_tokens = tokenizer.encode("[QST]").ids + tokenizer.encode(question_text).ids + tokenizer.encode("[ANS]").ids
-        question_tokens = torch.tensor(question_tokens).unsqueeze(0).to(device)
-
-        generated_sequence = question_tokens
+        input_sequence = input_sequence.unsqueeze(0).to(device) # Add batch dimension and move to device
         answer = []
         for _ in range(max_len):
-            last_token_logits = model(generated_sequence)
+            last_token_logits = model(input_sequence)
             last_token_logits = last_token_logits[0, -1, :]
 
             if strategy == "greedy":
@@ -48,15 +42,27 @@ def sample_sequence(model, tokenizer, question_text, strategy, max_len, device, 
             else:
                 raise ValueError("Invalid sampling strategy.")
 
-            generated_sequence = torch.cat([generated_sequence, next_token.view(1, 1)], dim=1)
+            generated_sequence = torch.cat([input_sequence, next_token.view(1, 1)], dim=1)
             answer.append(next_token.item())
 
-            if next_token == tokenizer.token_to_id("[END]") or generated_sequence.size(1) >= max_len:
+            if next_token == end_id or input_sequence.size(1) >= max_len:
                 break
 
-        answer_text = tokenizer.decode(answer)
-        return answer_text
+        return answer
 
+def tokenize_input(tokenizer, text, sep_id):
+    """
+    Tokenize input text and add special tokens.
+    """
+    tokens = tokenizer.encode(text).ids
+    tokens = tokens + [sep_id]
+    return torch.tensor(tokens)
+
+def decode_output(tokenizer, tokens):
+    """
+    Decode output tokens.
+    """
+    return tokenizer.decode(tokens)
 
 if __name__ == "__main__":
     from config import config
@@ -70,15 +76,22 @@ if __name__ == "__main__":
 
     tokenizer = Tokenizer.from_file(config.tokenizer_filename)
 
+    sep_id = tokenizer.token_to_id(config.sep_token)
+    end_id = tokenizer.token_to_id(config.end_token)
+
     question_text = "what is the largest dog breed?"
 
+    input_sequence = tokenize_input(tokenizer, question_text, sep_id) 
+
     print("Greedy sampling:")
-    answer_text = sample_sequence(model, tokenizer, question_text, "greedy", 100, config.device)
+    answer = sample_sequence(input_sequence, model, "greedy", 100, config.device, end_id)
+    answer_text = decode_output(tokenizer, answer)
     print(f"Question: {question_text}")
     print(f"Answer: {answer_text}")
 
     print("Top-p sampling (p=0.95, temperature=0.7):")
-    answer_text = sample_sequence(model, tokenizer, question_text, "top-p", 100, config.device, p=0.95, temperature=0.7)
+    answer = sample_sequence(input_sequence, model, "top-p", 100, config.device, end_id, p=0.95, temperature=0.7)
+    answer_text = decode_output(tokenizer, answer)
     print(f"Question: {question_text}")
     print(f"Answer: {answer_text}")
 

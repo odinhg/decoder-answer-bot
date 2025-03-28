@@ -4,7 +4,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 def example_to_text(example):
-    return f"[QST]{example['question']}[ANS]{example['answer']}[END]"
+    return f"{example['question']} {example['answer']}"
 
 def train_tokenizer(config):
     # Load the training data and select a subset to train the tokenizer on
@@ -27,7 +27,7 @@ def train_tokenizer(config):
     trainer = trainers.BpeTrainer(
         vocab_size=config.vocab_size,
         min_frequency=config.min_frequency,
-        special_tokens=config.special_tokens,
+        special_tokens=[config.sep_token, config.end_token, config.pad_token, config.unk_token],
         show_progress=True,
     )
 
@@ -56,11 +56,14 @@ if __name__ == "__main__":
 
     # Simple sanity check of the tokenizer
     print(f"Vocabulary size: {tokenizer.get_vocab_size()}")
-    input_question = "Who is the president of the United States?"
-    input_answer = "That would be Donald Musk, I believe."
-    example = {"question": input_question, "answer": input_answer}
-    text = example_to_text(example)
-    print(f"Tokenizer Input: {text}")
+    input_question = "How many legs does a cat have?"
+    input_answer = "Five, unless it has lost one."
+
+    text = f"{input_question} {config.sep_token} {input_answer} {config.end_token}"
+
+    print(f"Question string: {input_question}")
+    print(f"Answer string: {input_answer}")
+    print(f"Tokenizer input: {text}")
     encoded = tokenizer.encode(text)
     print(f"Encoded: {encoded.ids}")
     decoded = tokenizer.decode(encoded.ids, skip_special_tokens=False)

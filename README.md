@@ -24,10 +24,10 @@ This is a from-scratch implementation of a decoder-only transformer model for ge
 The sequence format is as follows:
 
 ```
-[QUESTION] q1 q2 ... qN [ANSWER] a1 a2 ... aM [END]
+q1 q2 ... qN [SEP] a1 a2 ... aM [END] [PAD] ... [PAD]
 ```
 
-where `[QUESTION]` and `[ANSWER]` are special tokens indicating the start of the question and answer sequences, respectively, and `[END]` is a special token indicating the end of the sequence.
+with special tokens `[SEP]` for separating questions and answers, `[END]` for marking the end of the answer, and `[PAD]` for padding. The token `[UNK]` is used for out-of-vocabulary words.
 
 The dataset is a subset of the [GooAQ dataset](https://github.com/allenai/gooaq). 
 
@@ -63,30 +63,6 @@ Some websites and videos that are helpful for understanding transformers and sel
 - [Attention in transformers, step-by-step (YouTube)](https://www.youtube.com/watch?v=eMlx5fFNoYc)
 - [Attention is all you need (The original transformers paper)](https://arxiv.org/pdf/1706.03762)
 - [Stack Overflow answer explaining the role of masking in attention layers](https://stackoverflow.com/a/59713254)
-
-### Questions
-
-Here are some natural questions that arise from this project that you might want to think about:
-
-**1. What are the practical implications of increasing the maximum sequence length?**
-
-**2. How does the vocabulary size affect the model size and training time?**
-
-**3. What are the advantages and drawbacks of different sampling strategies (beam search, top-p and greedy)?** 
-
-**4. What is meant by "auto-regressive" in the context of transformer models?**
-
-**5. How does the transformer model handle variable-length sequences?**
-
-**6. What is the role of masking in the self-attention layers?**
-
-**7. What is the role of masking the padding tokens in the attention layers?**
-
-**8. What is the role of applying masking to the cross-entropy loss function (i.e., setting some labels to `-100`)?**
-
-**9. How many parameters does your model have? Compare it to the GPT-1, GPT-2, and GPT-3 models.**
-
-**10. Would an encoder-decoder transformer model be more suitable for this task? What are the benefits and drawbacks?**
 
 ---
 

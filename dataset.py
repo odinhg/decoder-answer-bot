@@ -17,10 +17,9 @@ class QADataset(Dataset):
         self.max_length = config.max_len
 
         # Special token IDs
-        self.pad_id = self.tokenizer.token_to_id("[PAD]")
-        self.qst_id = self.tokenizer.token_to_id("[QST]")
-        self.ans_id = self.tokenizer.token_to_id("[ANS]")
-        self.end_id = self.tokenizer.token_to_id("[END]")
+        self.pad_id = self.tokenizer.token_to_id(config.pad_token)
+        self.sep_id = self.tokenizer.token_to_id(config.sep_token)
+        self.end_id = self.tokenizer.token_to_id(config.end_token)
 
     def __len__(self):
         return len(self.dataset)
@@ -31,7 +30,7 @@ class QADataset(Dataset):
         question_ids = self.tokenizer.encode(question).ids
         answer_ids = self.tokenizer.encode(answer).ids
 
-        tokenized_sequence = [self.qst_id] + question_ids + [self.ans_id] + answer_ids + [self.end_id]
+        tokenized_sequence = question_ids + [self.sep_id] + answer_ids + [self.end_id]
 
         # Pad and/or truncate the sequence if necessary
         pad_length = self.max_length - len(tokenized_sequence) + 1

@@ -9,8 +9,3 @@ def print_config(config):
         print(f"\t{key}: {value}")
     print("*" * 100)
 
-def sample_greedy():
-    pass
-
-def sample_top_p():
-    pass
