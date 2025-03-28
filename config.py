@@ -13,7 +13,6 @@ config = SimpleNamespace(**{
     "device": "cpu" if not torch.cuda.is_available() else "cuda",
     
     # Tokenizer config
-    "tokenizer_train_fraction": 1.0,
     "vocab_size": 20_000,
     "min_frequency": 5,
     "unk_token": "[UNK]",
@@ -44,8 +43,7 @@ config = SimpleNamespace(**{
 """
 if config.device == "cpu":
     config.vocab_size = 5000
-    config.tokenizer_train_fraction = 0.1
-    config.embed_size = 32
+    config.embed_size = 16 
     config.num_heads = 2
     config.num_layers = 2
     config.batch_size = 32

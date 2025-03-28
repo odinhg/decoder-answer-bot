@@ -9,15 +9,10 @@ def example_to_text(example):
 def train_tokenizer(config):
     # Load the training data and select a subset to train the tokenizer on
     dataset = load_dataset(config.dataset)[config.split]
-    n_subset = int(config.tokenizer_train_fraction * len(dataset))
-    train_data = dataset.select(range(n_subset))
-    print(
-        f"Loaded dataset of size {len(train_data)} with columns {train_data.column_names}"
-    )
 
-    # Combine questions and answers into single strings 
+    # Concatenate the question and answer strings 
     print("Combining strings...")
-    train_texts = [example_to_text(example) for example in tqdm(train_data)]
+    train_texts = [example_to_text(example) for example in tqdm(dataset)]
 
     tokenizer = Tokenizer(models.BPE(unk_token=config.unk_token))
     tokenizer.normalizer = normalizers.BertNormalizer(clean_text=True, strip_accents=True)
