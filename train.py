@@ -62,7 +62,7 @@ def train_model(config):
             target = target.to(config.device)
             key_padding_mask = key_padding_mask.to(config.device)
 
-            if config.device == "cuda":  # Mixed precision training on GPU
+            if scaler is not None: 
                 with torch.autocast("cuda"):
                     out = model(source, padding_mask=key_padding_mask)
                     loss = criterion(out.transpose(1, 2), target)

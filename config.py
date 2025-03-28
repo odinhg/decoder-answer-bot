@@ -48,5 +48,6 @@ if config.device == "cpu":
     config.num_layers = 2
     config.batch_size = 32
     config.num_epochs = 1
+    config.max_len = 32
     config.model_train_fraction = 0.1
 """
