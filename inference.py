@@ -32,6 +32,7 @@ def sample_sequence(input_sequence, model, strategy, max_len, device, end_id, p=
         input_sequence = input_sequence.unsqueeze(0).to(device) # Add batch dimension and move to device
         answer = []
         for _ in range(max_len):
+            print(input_sequence)
             last_token_logits = model(input_sequence)
             last_token_logits = last_token_logits[0, -1, :]
 
@@ -42,7 +43,7 @@ def sample_sequence(input_sequence, model, strategy, max_len, device, end_id, p=
             else:
                 raise ValueError("Invalid sampling strategy.")
 
-            generated_sequence = torch.cat([input_sequence, next_token.view(1, 1)], dim=1)
+            input_sequence = torch.cat([input_sequence, next_token.view(1, 1)], dim=1)
             answer.append(next_token.item())
 
             if next_token == end_id or input_sequence.size(1) >= max_len:
