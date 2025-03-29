@@ -32,7 +32,6 @@ def sample_sequence(input_sequence, model, strategy, max_len, device, end_id, p=
         input_sequence = input_sequence.unsqueeze(0).to(device) # Add batch dimension and move to device
         answer = []
         for _ in range(max_len):
-            print(input_sequence)
             last_token_logits = model(input_sequence)
             last_token_logits = last_token_logits[0, -1, :]
 
