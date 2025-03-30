@@ -7,29 +7,35 @@ class DecoderBlock(nn.Module):
         self.attention = nn.MultiheadAttention(embed_dim=embed_size, num_heads=num_heads, batch_first=True)
         self.norm1 = nn.LayerNorm(embed_size)
         self.norm2 = nn.LayerNorm(embed_size)
+        # Using a fixed hidden layer size of 4 * embed_size
         self.ffn = nn.Sequential(
             nn.Linear(embed_size, embed_size * 4),
-            nn.ReLU(), # Alternatively, use GELU activation
+            nn.GELU(),
             nn.Linear(embed_size * 4, embed_size),
         )
-        self.dropout = nn.Dropout(dropout)
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
 
     def forward(self, x, attn_mask, padding_mask):
-
-        if padding_mask is None:
+        if padding_mask is None: # Create "empty" padding mask if not provided
             padding_mask = torch.zeros(x.shape[:2]).bool().to(x.device)
 
+        x_norm = self.norm1(x)
+
         attn_output, _ = self.attention(
-            x, x, x, 
+            x_norm, x_norm, x_norm, 
             attn_mask=attn_mask, 
             key_padding_mask=padding_mask, 
             need_weights=False,
             is_causal=True,
         )
-        x = self.norm1(attn_output + x)
-        ffn_out = self.ffn(x)
-        out = self.norm2(ffn_out + x)
-        return self.dropout(out)
+
+        attn_output = self.dropout1(attn_output)
+        x = attn_output + x
+        x = self.norm2(x)
+        mlp_out = self.ffn(x)
+        out = x + self.dropout2(mlp_out)
+        return out
 
 
 class TransformerModel(nn.Module):
@@ -49,6 +55,7 @@ class TransformerModel(nn.Module):
         self.layers = nn.ModuleList([DecoderBlock(self.embed_size, self.num_heads, self.dropout_p) for _ in range(self.num_layers)])
         self.fc_out = nn.Linear(self.embed_size, self.vocab_size)
 
+        # Precompute the causal mask and positional encoding
         self.register_buffer("causal_mask", self.generate_causal_mask(self.max_len))
         self.register_buffer("positional_encoding", self.create_positional_encoding(self.max_len, self.embed_size)) 
 

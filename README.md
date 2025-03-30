@@ -6,9 +6,9 @@ This is a from-scratch implementation of a decoder-only transformer model for ge
 
 - **Decoder-only** transformer model for **causal language modeling** 
 - **Masked self-attention** layer for causal attention
-- Only **35M parameters**
+- Only **36M parameters**
 - BPE Tokenizer trained from scratch with a **vocabulary size of 20k**
-- Trained on a subset of the GooAQ dataset with ~**800k question-answer pairs** (no pre-training)
+- Trained on a subset of the GooAQ dataset with ~**850k question-answer pairs** (no pre-training)
 - Supports **greedy** and **top-p** (nucleus) sampling at inference time
 - Super basic **chatbot interface** for interacting with the model based on streamlit
 
