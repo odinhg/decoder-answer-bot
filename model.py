@@ -38,6 +38,23 @@ class DecoderBlock(nn.Module):
         return out
 
 
+class PositionalEncoding(nn.Module):
+    """
+    Positional encoding module: adds positional information to the input embeddings.
+    """
+    def __init__(self, embed_size, max_len):
+        super().__init__()
+        positional_encoding = torch.zeros(max_len, embed_size)
+        pos = torch.arange(max_len, dtype=torch.float).unsqueeze(1)
+        div_term = 1 / (10000 ** (torch.arange(0, embed_size, 2).float() / embed_size))  # Direct computation
+        positional_encoding[:, 0::2] = torch.sin(pos * div_term)
+        positional_encoding[:, 1::2] = torch.cos(pos * div_term)
+        self.register_buffer("positional_encoding", positional_encoding.unsqueeze(0))  # Store as buffer
+
+    def forward(self, x):
+        return x + self.positional_encoding[:, :x.size(1), :].to(x.device)
+
+
 class TransformerModel(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -51,13 +68,13 @@ class TransformerModel(nn.Module):
 
         self.embedding = nn.Embedding(self.vocab_size, self.embed_size)
         self.dropout = nn.Dropout(self.dropout_p)
+        self.pos_encoder = PositionalEncoding(self.embed_size, self.max_len)
 
         self.layers = nn.ModuleList([DecoderBlock(self.embed_size, self.num_heads, self.dropout_p) for _ in range(self.num_layers)])
         self.fc_out = nn.Linear(self.embed_size, self.vocab_size)
 
         # Precompute the causal mask and positional encoding
         self.register_buffer("causal_mask", self.generate_causal_mask(self.max_len))
-        self.register_buffer("positional_encoding", self.create_positional_encoding(self.max_len, self.embed_size)) 
 
     def forward(self, x, padding_mask=None):
         batch_size, seq_len = x.shape
@@ -65,23 +82,15 @@ class TransformerModel(nn.Module):
         # Use the precomputed causal mask (trim to match seq_len)
         attn_mask = self.causal_mask[:seq_len, :seq_len]
 
-        # Inject positional encoding
-        x = self.embedding(x) + self.positional_encoding[:seq_len, :]
+        # Embed and add positional encoding
+        x = self.embedding(x)
+        x = self.pos_encoder(x)
         x = self.dropout(x)
 
         for layer in self.layers:
             x = layer(x, attn_mask, padding_mask)
 
         return self.fc_out(x)
-
-    def create_positional_encoding(self, max_len, embed_size):
-        pos = torch.arange(max_len).unsqueeze(1)
-        i = torch.arange(embed_size // 2).unsqueeze(0)
-        angles = pos / torch.pow(10000, 2 * (i // 2) / embed_size)
-        pos_encoding = torch.zeros(max_len, embed_size)
-        pos_encoding[:, 0::2] = torch.sin(angles)
-        pos_encoding[:, 1::2] = torch.cos(angles)
-        return pos_encoding
 
     def generate_causal_mask(self, seq_len):
         """Generates an upper triangular mask to prevent attending to future tokens."""
