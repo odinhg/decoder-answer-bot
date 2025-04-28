@@ -1,4 +1,4 @@
-# My Little Language Model (aka the cursed chatbot)
+# Cursed Chatbot – Decoder-Only Transformer for Text Generation
 
 ![screenshot of chatbot interface](figs/chatbot_screenshot.png)
 
